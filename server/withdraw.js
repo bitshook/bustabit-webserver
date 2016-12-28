@@ -31,7 +31,7 @@ module.exports = function(userId, satoshis, withdrawalAddress, withdrawalId, set
             return;
         }
 
-        var amountToSend = (satoshis - (parseFloat(settings.withdrawal_mining_fee) * 100)) / 1e8;
+        var amountToSend = (satoshis / 100) - parseFloat(settings.withdrawal_mining_fee);
         bc.sendToAddress(withdrawalAddress, amountToSend, function (err, hash) {
             if (err) {
                 if (err.message === 'Insufficient funds')

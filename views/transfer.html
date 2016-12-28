@@ -41,7 +41,7 @@
             </ul>
         </div>
         <div class="small-10 columns sets-content">
-            <a class="border-button right green" href="/transfer/request">Transfer Bits</a>
+            <a class="border-button right green" href="/transfer/request">Transfer DOGE</a>
             <h5 >Transfer History</h5>
             {{?it.transfers.length > 0}}
                 <table>
@@ -58,7 +58,7 @@
                                 {{??}}
                                    +
                                 {{?}}
-                                {{#def.format: {n: transfer.amount, decimals: 2 } }} bits</td>
+                                {{#def.format: {n: transfer.amount, decimals: 2 } }} DOGE</td>
                             <td>
                                 {{=transfer.created}}
                             </td>

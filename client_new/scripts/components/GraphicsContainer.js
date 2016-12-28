@@ -129,7 +129,7 @@ define([
                     )
                 ),
                 D.div({ className: 'max-profit' },
-                    'Max profit: ', (GameEngineStore.maxWin/1e8).toFixed(4), ' BTC'
+                    'Max profit: ', (this.state.maxWin/100).toFixed(4), ' DOGE'
                 ),
                 D.canvas({ ref: 'canvas', className: ((this.state.graphMode === 'text')? 'hide': '') }),
                 textDisplay,

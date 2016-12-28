@@ -169,7 +169,7 @@ function requestDevOtt(id, callback) {
         url: 'https://www.bitshook.com/ott',
         include: true ,
         method: 'POST',
-        'cookie': 'id_btc='+id
+        'cookie': 'id_doge='+id
     };
 
     var ott=null;

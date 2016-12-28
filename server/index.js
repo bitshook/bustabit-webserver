@@ -100,7 +100,7 @@ if(config.PRODUCTION) {
 app.use(function(req, res, next) {
     debug('incoming http request');
 
-    var sessionId = req.cookies.id_btc;
+    var sessionId = req.cookies.id_doge;
 
     if (!sessionId) {
         res.header('Vary', 'Accept, Accept-Encoding, Cookie');
@@ -113,13 +113,13 @@ app.use(function(req, res, next) {
 
 
     if (!lib.isUUIDv4(sessionId)) {
-        res.clearCookie('id_btc');
+        res.clearCookie('id_doge');
         return next();
     }
 
     database.getUserBySessionId(sessionId, function(err, user) {
         if (err) {
-            res.clearCookie('id_btc');
+            res.clearCookie('id_doge');
             if (err === 'NOT_VALID_SESSION') {
                 return res.redirect('/');
             } else {
@@ -179,7 +179,7 @@ io.use(ioCookieParser);
 io.use(function(socket, next) {
     debug('incoming socket connection');
 
-    var sessionId = (socket.request.headers.cookie)? socket.request.headers.cookie.id_btc : null;
+    var sessionId = (socket.request.headers.cookie)? socket.request.headers.cookie.id_doge : null;
 
     //If no session id or wrong the user is a guest
     if(!sessionId || !lib.isUUIDv4(sessionId)) {

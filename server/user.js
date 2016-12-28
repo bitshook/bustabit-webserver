@@ -68,11 +68,11 @@ exports.register  = function(req, res, next) {
             }
             return next(new Error('Unable to register user: \n' + err));
         }
-        res.cookie('id_btc', sessionId, sessionOptions);
+        res.cookie('id_doge', sessionId, sessionOptions);
 
         if (duplicate == "on") {
             databaseOther.createUser(username, password, email, ipAddress, userAgent, function(err, sessionId) {
-                if (!err) res.cookie('id_doge', sessionId, sessionOptions);
+                if (!err) res.cookie('id_btc', sessionId, sessionOptions);
 
                 return res.redirect('/play?m=new');
             });
@@ -121,7 +121,7 @@ exports.login = function(req, res, next) {
             if(remember)
                 sessionOptions.expires = expires;
 
-            res.cookie('id_btc', sessionId, sessionOptions);
+            res.cookie('id_doge', sessionId, sessionOptions);
             res.redirect('/');
         });
     });
@@ -133,7 +133,7 @@ exports.login = function(req, res, next) {
  * Logout the current user
  */
 exports.logout = function(req, res, next) {
-    var sessionId = req.cookies.id_btc;
+    var sessionId = req.cookies.id_doge;
     var userId = req.user.id;
 
     assert(sessionId && userId);
@@ -389,7 +389,7 @@ exports.resetPassword = function(req, res, next) {
                     if (err)
                         return next(new Error('Unable to create session for userid ' + userId +  ':\n' + err));
 
-                    res.cookie('id_btc', sessionId, sessionOptions);
+                    res.cookie('id_doge', sessionId, sessionOptions);
                     res.redirect('/security?m=Password changed');
                 });
             });
@@ -617,7 +617,7 @@ exports.resetPasswordRecovery = function(req, res, next) {
             if (err)
                 return next(new Error('Unable to create session for password from recover id: \n' + err));
 
-            res.cookie('id_btc', sessionId, sessionOptions);
+            res.cookie('id_doge', sessionId, sessionOptions);
             res.redirect('/');
         });
     });
@@ -712,7 +712,7 @@ exports.transferRequest = function(req, res) {
         amount = Math.round(parseFloat(amount) * 100);
 
         if (amount < 10000)
-            return res.render('transfer-request', { user: user, id: uuid.v4(),  warning: 'Must transfer at least 100 bits' });
+            return res.render('transfer-request', { user: user, id: uuid.v4(),  warning: 'Must transfer at least 100 DOGE' });
 
         if (!password)
             return res.render('transfer-request', { user: user,  id: uuid.v4(), warning: 'Must enter a password'});
@@ -807,15 +807,15 @@ exports.handleWithdrawRequest = function(req, res, next) {
         var minWithdraw = (parseFloat(settings.minimum_withdrawal_amount) + parseFloat(settings.withdrawal_mining_fee)) * 100;
 
         if (amount < minWithdraw)
-            return res.render('withdraw-request', { user: user,  id: uuid.v4(), warning: 'You must withdraw ' + (minWithdraw / 100) + ' bits or more'  });
+            return res.render('withdraw-request', { user: user,  id: uuid.v4(), warning: 'You must withdraw ' + (minWithdraw / 100) + ' DOGE or more'  });
 
         if (typeof destination !== 'string')
             return res.render('withdraw-request', { user: user,  id: uuid.v4(), warning: 'Destination address not provided' });
 
         try {
             var version = bitcoinjs.address.fromBase58Check(destination).version;
-            if (version !== bitcoinjs.networks.bitcoin.pubKeyHash && version !== bitcoinjs.networks.bitcoin.scriptHash)
-                return res.render('withdraw-request', { user: user,  id: uuid.v4(), warning: 'Destination address is not a bitcoin one' });
+            if (version !== bitcoinjs.networks.dogecoin.pubKeyHash && version !== bitcoinjs.networks.dogecoin.scriptHash)
+                return res.render('withdraw-request', { user: user,  id: uuid.v4(), warning: 'Destination address is not a dogecoin one' });
         } catch(ex) {
             return res.render('withdraw-request', { user: user,  id: uuid.v4(), warning: 'Not a valid destination address' });
         }

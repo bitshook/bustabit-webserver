@@ -44,8 +44,8 @@
         <div class="small-10 columns sets-content">
             <h4>Request A Withdrawal</h4>
             <p class="small">
-                **The minimum amount for a withdrawal is {{= parseFloat(it.settings.withdrawal_mining_fee) + parseFloat(it.settings.minimum_withdrawal_amount) }} bits. You will receive {{= it.settings.withdrawal_mining_fee }} bits less than what you withdraw,
-                as we use that {{= it.settings.withdrawal_mining_fee }} bits to go towards mining fee. As required, we will as well chip in with our money to
+                **The minimum amount for a withdrawal is {{= parseFloat(it.settings.withdrawal_mining_fee) + parseFloat(it.settings.minimum_withdrawal_amount) }} DOGE. You will receive {{= it.settings.withdrawal_mining_fee }} DOGE less than what you withdraw,
+                as we use that {{= it.settings.withdrawal_mining_fee }} DOGE to go towards mining fee. As required, we will as well chip in with our money to
                 help expedite confirmation time.
             </p>
 
@@ -58,7 +58,7 @@
                 <input style="display:none" type="text" name="fakeusernameremembered"/>
                 <input style="display:none" type="password" name="fakepasswordremembered"/>
 
-                <label for="amount">Bits amount</label>
+                <label for="amount">DOGE amount</label>
                 <input type="number" id="amount" name="amount" placeholder="{{= parseFloat(it.settings.withdrawal_mining_fee) + parseFloat(it.settings.minimum_withdrawal_amount) }}" min="{{= parseFloat(it.settings.withdrawal_mining_fee) + parseFloat(it.settings.minimum_withdrawal_amount) }}" step=".01" required/>
                 <label for="destination">Destination Address</label>
                 <input type="text" id="destination" name="destination" required/>

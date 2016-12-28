@@ -80,7 +80,7 @@ if (!derivedPubKey)
     throw new Error('Must set env var BIP32_DERIVED_KEY');
 
 
-var hdNode = bitcoinjs.HDNode.fromBase58(derivedPubKey);
+var hdNode = bitcoinjs.HDNode.fromBase58(derivedPubKey, bitcoinjs.networks.dogecoin);
 
 exports.deriveAddress = function(index) {
     return hdNode.derive(index).keyPair.getAddress().toString();
@@ -159,7 +159,7 @@ exports.removeNullsAndTrim = function(str) {
 };
 
 exports.getSettings = function(callback) {
-    var settings_file = '/usr/local/src/btc-settings.json';
+    var settings_file = '/usr/local/src/doge-settings.json';
     return fs.readFile(settings_file, 'utf8', function(err, contents) {
         if (err) {
             console.error("[INTERNAL_ERROR] Failed to read " + settings_file + ", got error: " + err);

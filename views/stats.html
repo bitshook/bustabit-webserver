@@ -30,15 +30,15 @@
 
                         <tr>
                             <td><b>Deposits:</b></td>
-                            <td>{{#def.format: {n: it.stats.deposits.sum} }} bits</td>
+                            <td>{{#def.format: {n: it.stats.deposits.sum} }} DOGE</td>
                         </tr>
                         <tr>
                             <td><b>Withdrawals:</b></td>
-                            <td>{{#def.format: { n: it.stats.withdrawals.sum } }} bits</td>
+                            <td>{{#def.format: { n: it.stats.withdrawals.sum } }} DOGE</td>
                         </tr>
                         <tr>
                             <td class="strong">Net:</td>
-                            <td class="strong">{{#def.format: { n: (it.stats.deposits.sum - (it.stats.withdrawals.sum * -1)) } }} bits</td>
+                            <td class="strong">{{#def.format: { n: (it.stats.deposits.sum - (it.stats.withdrawals.sum * -1)) } }} DOGE</td>
                         </tr>
                         <tr>
                             <td></td>
@@ -46,30 +46,30 @@
                         </tr>
                         <tr>
                             <td><b>Total Wagered:</b></td>
-                            <td>{{#def.format: {n: it.stats.plays.total_bet } }} bits</td>
+                            <td>{{#def.format: {n: it.stats.plays.total_bet } }} DOGE</td>
                         </tr>
                         <tr>
                             <td><b>Players won in cashed:</b></td>
-                            <td>{{#def.format: {n: it.stats.plays.cashed_out } }} bits <small>(
+                            <td>{{#def.format: {n: it.stats.plays.cashed_out } }} DOGE <small>(
                                    {{= (it.stats.plays.cashed_out / it.stats.plays.total_bet * 100).toFixed(2) }}%
                                 )</small></td>
                         </tr>
                         <tr>
                             <td><b>Players won in bonuses:</b></td>
-                            <td>{{#def.format: {n: it.stats.plays.bonused } }} bits <small>(
+                            <td>{{#def.format: {n: it.stats.plays.bonused } }} DOGE <small>(
                                 {{= (it.stats.plays.bonused / it.stats.plays.total_bet * 100).toFixed(2) }}%
                                 )</small></td>
                         </tr>
                         <tr>
                             <td><b>Players won in total: </b></td>
-                            <td>{{#def.format: {n: (9 + it.stats.plays.cashed_out + it.stats.plays.bonused) } }} bits <small>(
+                            <td>{{#def.format: {n: (9 + it.stats.plays.cashed_out + it.stats.plays.bonused) } }} DOGE <small>(
                                 {{= ((it.stats.plays.cashed_out + it.stats.plays.bonused) / it.stats.plays.total_bet * 100).toFixed(2) }}%
                                 )</small></td>
                         </tr>
                         <tr>
                             <td class="strong">Our Profit:</td>
                             <td class="strong">
-                                {{#def.format: {n: it.stats.plays.total_bet - it.stats.plays.cashed_out - it.stats.plays.bonused  } }} bits
+                                {{#def.format: {n: it.stats.plays.total_bet - it.stats.plays.cashed_out - it.stats.plays.bonused  } }} DOGE
                                 <small>(
                                     {{= ((it.stats.plays.total_bet - it.stats.plays.cashed_out - it.stats.plays.bonused ) / it.stats.plays.total_bet * 100).toFixed(2) }}%
                                     )</small>
@@ -82,13 +82,13 @@
                         <tr>
                             <td class="strong">Bankroll:</td>
                             <td class="strong">
-                                {{#def.format: {n: it.stats.plays.total_bet - it.stats.plays.cashed_out - it.stats.plays.bonused + it.stats.bankroll_offset } }} bits
+                                {{#def.format: {n: it.stats.plays.total_bet - it.stats.plays.cashed_out - it.stats.plays.bonused + it.stats.bankroll_offset } }} DOGE
                             </td>
                         </tr>
                         <tr>
                             <td class="strong">Max win per game:</td>
                             <td>
-                                {{#def.format: {n: it.stats.maximum_game_winnings } }} bits
+                                {{#def.format: {n: it.stats.maximum_game_winnings } }} DOGE
                             </td>
                         </tr>
                         <tr>

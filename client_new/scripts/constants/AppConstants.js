@@ -63,9 +63,9 @@ define(['lib/key-mirror'], function(KeyMirror){
 
         Engine: {
             STOP_PREDICTING_LAPSE: 300,
-            HOST: window.document.location.hostname + ":10001",
+            HOST: window.document.location.hostname + ":11001",
             CHAT_HOST: window.document.location.host,
-            MAX_BET: 100000000 /** Max bet per game 1,000,000 Bits, this will be calculated dynamically in the future, based on the invested amount in the casino **/
+            MAX_BET: 100000000 /** Max bet per game 1,000,000 DOGE, this will be calculated dynamically in the future, based on the invested amount in the casino **/
         },
 
         BetButton: {

@@ -107,7 +107,7 @@ define([
         render: function() {
             return D.div({ className: 'chart', style: { position: 'relative' }},
                 D.div({ style: { position: 'absolute', bottom: '27px', right: '30px', fontSize: '55%' }},
-                    'Max profit: ', (this.state.engine.maxWin/1e8).toFixed(4), ' BTC'),
+                    'Max profit: ', (this.state.engine.maxWin/100).toFixed(4), ' DOGE'),
 
                 D.canvas({
                     width: this.graph.canvasWidth,

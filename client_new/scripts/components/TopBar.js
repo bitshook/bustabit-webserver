@@ -75,7 +75,7 @@ define([
             if(Engine.username) {
                 userLogin = D.div({ className: 'user-login' },
                     D.div({ className: 'balance-bits' },
-                        D.span(null, 'Bits: '),
+                        D.span(null, 'DOGE: '),
                         D.span({ className: 'balance' }, this.state.balanceBitsFormatted )
                     ),
                     D.div({ className: 'username' },
