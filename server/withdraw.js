@@ -5,10 +5,10 @@ var request = require('request');
 var config = require('../config/config');
 
 // Doesn't validate
-module.exports = function(userId, satoshis, withdrawalAddress, withdrawalId, callback) {
-    var minWithdraw = config.MINING_FEE + 100;
+module.exports = function(userId, satoshis, withdrawalAddress, withdrawalId, settings, callback) {
+    // var minWithdraw = config.MINING_FEE + 100;
     assert(typeof userId === 'number');
-    assert(satoshis >= minWithdraw);
+    // assert(satoshis >= minWithdraw);
     assert(typeof withdrawalAddress === 'string');
     assert(typeof callback === 'function');
 
@@ -25,7 +25,13 @@ module.exports = function(userId, satoshis, withdrawalAddress, withdrawalId, cal
 
         assert(fundingId);
 
-        var amountToSend = (satoshis - config.MINING_FEE) / 1e8;
+        if (satoshis / 100 > settings.automatic_withdrawal_limit) {
+            console.log('Big withdrawal over automatic_withdrawal_limit ', fundingId);
+            callback('OVER_LIMIT');
+            return;
+        }
+
+        var amountToSend = (satoshis - (parseFloat(settings.withdrawal_mining_fee) * 100)) / 1e8;
         bc.sendToAddress(withdrawalAddress, amountToSend, function (err, hash) {
             if (err) {
                 if (err.message === 'Insufficient funds')

@@ -26,6 +26,20 @@ function staticPageLogged(page, loggedGoTo) {
     }
 }
 
+function getFaq(req, res) {
+    var user = req.user;
+    if (!user){
+        return res.render('faq');
+    }
+    
+    lib.getSettings(function(err, settings) {
+        res.render('faq', {
+            user: user,
+            settings: settings
+        });
+    });
+}
+
 function contact(origin) {
     assert(typeof origin == 'string');
 
@@ -122,11 +136,13 @@ function table() {
 
 function tableNew() {
     return function(req, res) {
-
-        res.render('table_new', {
-            user: req.user,
-            buildConfig: config.BUILD,
-            table: true
+        lib.getSettings(function(err, settings) {
+            res.render('table_new', {
+                user: req.user,
+                buildConfig: config.BUILD,
+                table: true,
+                settings: settings
+            });
         });
     }
 }
@@ -136,10 +152,13 @@ function tableDev() {
         if(config.PRODUCTION)
             return res.status(401);
         requestDevOtt(req.params.id, function(devOtt) {
-            res.render('table_new', {
-                user: req.user,
-                devOtt: devOtt,
-                table: true
+            lib.getSettings(function(err, settings) {
+                res.render('table_new', {
+                    user: req.user,
+                    devOtt: devOtt,
+                    table: true,
+                    settings: settings
+                });
             });
         });
     }
@@ -147,10 +166,10 @@ function tableDev() {
 function requestDevOtt(id, callback) {
     var curl = require('curlrequest');
     var options = {
-        url: 'https://www.bustabit.com/ott',
+        url: 'https://www.bitshook.com/ott',
         include: true ,
         method: 'POST',
-        'cookie': 'id='+id
+        'cookie': 'id_btc='+id
     };
 
     var ott=null;
@@ -170,7 +189,7 @@ module.exports = function(app) {
     app.get('/register', staticPageLogged('register', '/play'));
     app.get('/login', staticPageLogged('login', '/play'));
     app.get('/reset/:recoverId', user.validateResetPassword);
-    app.get('/faq', staticPageLogged('faq'));
+    app.get('/faq', getFaq);
     app.get('/contact', staticPageLogged('contact'));
     app.get('/request', restrict, user.request);
     app.get('/deposit', restrict, user.deposit);

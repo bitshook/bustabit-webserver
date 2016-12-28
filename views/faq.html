@@ -33,14 +33,6 @@
 
     <div class="columns large-9">
         <dl>
-            <h3 id="basics">Basics</h3>
-            <dd><b><a name="bitcoin-gambling"></a>What is bitcoin gambling?</b>
-                <p>
-                    Bitcoin gambling is a general term for any type of gambling wherein bets are placed in units of
-                    bitcoins as opposed to a fiat currency or any other asset. Learn more about
-                    <a href="https://www.moneypot.com/bitcoin-gambling">bitcoin gambling</a> or the history of <a href="online-gambling-meets-bitcoin">online gambling and bitcoin</a>.
-                </p>
-            </dd>
 
             <dd>
                 <b><a name="how-to-play"></a>How to play?</b>
@@ -59,7 +51,7 @@
             <dd>
                 <b><a name="giveaway"></a>How can I get free bits?</b>
                 <p>
-                    Every hour you can claim 2 free bits on your account page. We do this so that you may test and enjoy the game
+                    Every hour you can claim {{=it.settings.faucet_payout_bits}} free bits on your account page. We do this so that you may test and enjoy the game
                     without any commitment. There are no strings attached, you may withdraw this money if you so please, but
                     we ask you to refrain from abusing this feature =)
                 </p>
@@ -101,14 +93,14 @@
                     depending on the time of day and other circumstances.
                 </p>
                 <p>
-                    We remove 100 bits (about 0.05 USD) from any withdrawal amount to cover mining fees. We charge this amount
+                    We remove {{=it.settings.withdrawal_mining_fee}} bits from any withdrawal amount to cover mining fees. We charge this amount
                     <strong>regardless</strong> of the actual mining fees attached to the transaction, which may be more or less
                     than this, depending on the block competition at the time of your withdrawal.
                 </p>
                 <p>
-                    Withdrawals must be in increments of 1 bit (100 satoshis), with a minimum withdrawal of 200 bits (of which 100 bits
+                    Withdrawals must be in increments of 1 bit (100 satoshis), with a minimum withdrawal of {{=parseFloat(it.settings.withdrawal_mining_fee)+parseFloat(it.settings.minimum_withdrawal_amount)}} bits (of which {{=it.settings.withdrawal_mining_fee}} bits
                     goes towards the mining fee). As required, we will chip in our own money to help expedite confirmation time, such that
-                    we typically pay 200 bits in mining fees, despite charging you only 100 bits.
+                    we typically pay {{=it.settings.withdrawal_mining_fee*2}} bits in mining fees, despite charging you only {{=it.settings.withdrawal_mining_fee}} bits.
                 </p>
             </dd>
             <dd>

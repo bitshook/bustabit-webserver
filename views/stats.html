@@ -4,7 +4,7 @@
     <div class="content row panel radius">
         <div class="row">
             <div class="large-6 columns">
-                <h5>Bustabit.com Statistics</h5>
+                <h5>Bitshook.com Statistics</h5>
                 <small>Generated {{! it.generated }}</small>
                 <table class="stats">
                     <tbody>
@@ -88,7 +88,7 @@
                         <tr>
                             <td class="strong">Max win per game:</td>
                             <td>
-                                {{#def.format: {n: (it.stats.plays.total_bet - it.stats.plays.cashed_out - it.stats.plays.bonused + it.stats.bankroll_offset)*0.03 } }} bits
+                                {{#def.format: {n: it.stats.maximum_game_winnings } }} bits
                             </td>
                         </tr>
                         <tr>

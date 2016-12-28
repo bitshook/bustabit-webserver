@@ -86,10 +86,10 @@
             <br>
             {{?typeof it.user.eligible !== 'number' }}
                 {{?it.user.balance_satoshis > 100}}
-                    <div class="success bits">You are eligible for a free 2 bits <a href="/request">CLICK HERE TO REQUEST THEM!</a></div>
+                    <div class="success bits">You are eligible for {{=it.settings.faucet_payout_bits}} free bits <a href="/request">CLICK HERE TO REQUEST THEM!</a></div>
                 {{?}}
             {{??}}
-                <div class="success bits">You'll be eligible for 2 free bits in {{=it.user.eligible}} minutes</div>
+                <div class="success bits">You'll be eligible for {{=it.settings.faucet_payout_bits}} free bits in {{=it.user.eligible}} minutes</div>
             {{?}}
         </div>
     </div>

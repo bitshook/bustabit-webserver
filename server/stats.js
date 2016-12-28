@@ -1,6 +1,7 @@
 var database = require('./database');
 var timeago = require('timeago');
 var config = require('../config/config');
+var lib = require('./lib');
 
 var stats;
 var generated;
@@ -15,6 +16,11 @@ function getSiteStats() {
 
         stats = results;
         generated = new Date();
+
+        lib.getSettings(function(err, settings) {
+            if (err) return;
+            stats.maximum_game_winnings = settings.maximum_game_winnings * 100;
+        });
     });
 }
 

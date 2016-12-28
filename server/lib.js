@@ -2,6 +2,7 @@ var assert = require('better-assert');
 var bitcoinjs = require('bitcoinjs-lib');
 var crypto = require('crypto');
 var config = require('../config/config');
+var fs = require('fs');
 
 var encKey = config.ENC_KEY;
 
@@ -155,4 +156,19 @@ exports.removeNullsAndTrim = function(str) {
         return str.replace(/\0/g, '').trim();
     else
         return str;
+};
+
+exports.getSettings = function(callback) {
+    var settings_file = '/usr/local/src/btc-settings.json';
+    return fs.readFile(settings_file, 'utf8', function(err, contents) {
+        if (err) {
+            console.error("[INTERNAL_ERROR] Failed to read " + settings_file + ", got error: " + err);
+            callback(err);
+        }
+
+        var settings = JSON.parse(contents);
+        Object.keys(settings).forEach(function(key) { settings[key] = settings[key].value });
+
+        callback(null, settings);
+    });
 };

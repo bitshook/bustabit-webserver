@@ -5,6 +5,7 @@ var request = require('request');
 var timeago = require('timeago');
 var lib = require('./lib');
 var database = require('./database');
+var databaseOther = require('./databaseOther');
 var withdraw = require('./withdraw');
 var sendEmail = require('./sendEmail');
 var speakeasy = require('speakeasy');
@@ -29,6 +30,7 @@ exports.register  = function(req, res, next) {
     var password = lib.removeNullsAndTrim(values.user.password);
     var password2 = lib.removeNullsAndTrim(values.user.confirm);
     var email = lib.removeNullsAndTrim(values.user.email);
+    var duplicate = lib.removeNullsAndTrim(values.user.duplicate);
     var ipAddress = req.ip;
     var userAgent = req.get('user-agent');
 
@@ -66,8 +68,17 @@ exports.register  = function(req, res, next) {
             }
             return next(new Error('Unable to register user: \n' + err));
         }
-        res.cookie('id', sessionId, sessionOptions);
-        return res.redirect('/play?m=new');
+        res.cookie('id_btc', sessionId, sessionOptions);
+
+        if (duplicate == "on") {
+            databaseOther.createUser(username, password, email, ipAddress, userAgent, function(err, sessionId) {
+                if (!err) res.cookie('id_doge', sessionId, sessionOptions);
+
+                return res.redirect('/play?m=new');
+            });
+        } else {
+            return res.redirect('/play?m=new');
+        }
     });
 };
 
@@ -110,7 +121,7 @@ exports.login = function(req, res, next) {
             if(remember)
                 sessionOptions.expires = expires;
 
-            res.cookie('id', sessionId, sessionOptions);
+            res.cookie('id_btc', sessionId, sessionOptions);
             res.redirect('/');
         });
     });
@@ -122,7 +133,7 @@ exports.login = function(req, res, next) {
  * Logout the current user
  */
 exports.logout = function(req, res, next) {
-    var sessionId = req.cookies.id;
+    var sessionId = req.cookies.id_btc;
     var userId = req.user.id;
 
     assert(sessionId && userId);
@@ -258,7 +269,9 @@ exports.request = function(req, res) {
     var user = req.user; //Login var
     assert(user);
 
-    res.render('request', { user: user });
+    lib.getSettings(function(err, settings) {
+        res.render('request', { user: user, settings: settings });
+    });
 };
 
 /**
@@ -325,7 +338,12 @@ exports.account = function(req, res, next) {
         user.net_profit = net.profit;
         user.deposit_address = lib.deriveAddress(user.id);
 
-        res.render('account', { user: user });
+        lib.getSettings(function(err, settings) {
+            if (err)
+                return next(new Error('Unable to get settings: \n' + err));
+
+            res.render('account', { user: user, settings: settings });
+        });
     });
 };
 
@@ -371,7 +389,7 @@ exports.resetPassword = function(req, res, next) {
                     if (err)
                         return next(new Error('Unable to create session for userid ' + userId +  ':\n' + err));
 
-                    res.cookie('id', sessionId, sessionOptions);
+                    res.cookie('id_btc', sessionId, sessionOptions);
                     res.redirect('/security?m=Password changed');
                 });
             });
@@ -431,7 +449,7 @@ exports.security = function(req, res) {
 
     if (!user.mfa_secret) {
         user.mfa_potential_secret = speakeasy.generate_key({ length: 32 }).base32;
-        var qrUri = 'otpauth://totp/bustabit:' + user.username + '?secret=' + user.mfa_potential_secret + '&issuer=bustabit';
+        var qrUri = 'otpauth://totp/bitshook:' + user.username + '?secret=' + user.mfa_potential_secret + '&issuer=bitshook';
         user.qr_svg = qr.imageSync(qrUri, { type: 'svg' });
         user.sig = lib.sign(user.username + '|' + user.mfa_potential_secret);
     }
@@ -464,7 +482,7 @@ exports.enableMfa = function(req, res, next) {
 
     if (otp !== expected) {
         user.mfa_potential_secret = secret;
-        var qrUri = 'otpauth://totp/bustabit:' + user.username + '?secret=' + secret + '&issuer=bustabit';
+        var qrUri = 'otpauth://totp/bitshook:' + user.username + '?secret=' + secret + '&issuer=bitshook';
         user.qr_svg = qr.imageSync(qrUri, {type: 'svg'});
         user.sig = sig;
 
@@ -599,7 +617,7 @@ exports.resetPasswordRecovery = function(req, res, next) {
             if (err)
                 return next(new Error('Unable to create session for password from recover id: \n' + err));
 
-            res.cookie('id', sessionId, sessionOptions);
+            res.cookie('id_btc', sessionId, sessionOptions);
             res.redirect('/');
         });
     });
@@ -677,61 +695,66 @@ exports.transferRequest = function(req, res) {
   **/
 
  exports.handleTransferRequest = function (req,res,next){
-     var user = req.user;
-     assert(user);
-     var uid = req.body['transfer-id'];
-     var amount = lib.removeNullsAndTrim(req.body.amount);
-     var toUserName = lib.removeNullsAndTrim(req.body['to-user']);
-     var password = lib.removeNullsAndTrim(req.body.password);
-     var otp = lib.removeNullsAndTrim(req.body.otp);
-     var r =  /^[1-9]\d*(\.\d{0,2})?$/;
-     if (!r.test(amount))
-         return res.render('transfer-request', { user: user, id: uuid.v4(),  warning: 'Not a valid amount' });
-    amount = Math.round(parseFloat(amount) * 100);
+     return lib.getSettings(function(err, settings) {
+        if (err) return res.render('transfer-request', { user: user, id: uuid.v4(), warning: 'The system encountered an internal error.' });
+        if (settings.enable_transfer_requests !== "true") return res.render('transfer-request', { user: user, id: uuid.v4(), warning: 'Sorry! Transfer requests are currently disabled.' });
 
-     if (amount < 10000)
-        return res.render('transfer-request', { user: user, id: uuid.v4(),  warning: 'Must transfer at least 100 bits' });
+        var user = req.user;
+        assert(user);
+        var uid = req.body['transfer-id'];
+        var amount = lib.removeNullsAndTrim(req.body.amount);
+        var toUserName = lib.removeNullsAndTrim(req.body['to-user']);
+        var password = lib.removeNullsAndTrim(req.body.password);
+        var otp = lib.removeNullsAndTrim(req.body.otp);
+        var r =  /^[1-9]\d*(\.\d{0,2})?$/;
+        if (!r.test(amount))
+            return res.render('transfer-request', { user: user, id: uuid.v4(),  warning: 'Not a valid amount' });
+        amount = Math.round(parseFloat(amount) * 100);
 
-    if (!password)
-        return res.render('transfer-request', { user: user,  id: uuid.v4(), warning: 'Must enter a password'});
+        if (amount < 10000)
+            return res.render('transfer-request', { user: user, id: uuid.v4(),  warning: 'Must transfer at least 100 bits' });
 
-    if (user.username.toLowerCase() === toUserName.toLowerCase()) {
-        return res.render('transfer-request', { user: user,  id: uuid.v4(), warning: 'Can\'t send money to yourself'});
-    }
+        if (!password)
+            return res.render('transfer-request', { user: user,  id: uuid.v4(), warning: 'Must enter a password'});
 
-    database.validateUser(user.username, password, otp, function(err) {
-
-        if (err) {
-            if (err === 'WRONG_PASSWORD')
-                return res.render('transfer-request', {
-                    user: user,
-                    id: uuid.v4(),
-                    warning: 'wrong password, try it again...'
-                });
-            if (err === 'INVALID_OTP')
-                return res.render('transfer-request', {user: user, id: uuid.v4(), warning: 'invalid one-time token'});
-            //Should be an user
-            return next(new Error('Unable to validate user handling transfer: ' + err));
+        if (user.username.toLowerCase() === toUserName.toLowerCase()) {
+            return res.render('transfer-request', { user: user,  id: uuid.v4(), warning: 'Can\'t send money to yourself'});
         }
-        // Check destination user
 
-        database.makeTransfer(uid, user.id, toUserName, amount, function (err) {
+        database.validateUser(user.username, password, otp, function(err) {
+
             if (err) {
-                if (err === 'NOT_ENOUGH_BALANCE')
-                    return res.render('transfer-request', {user: user, id: uuid.v4(), warning: 'Not enough balance for transfer'});
-                if (err === 'USER_NOT_EXIST')
-                    return res.render('transfer-request', {user: user, id: uuid.v4(), warning: 'Could not find user'});
-                if (err === 'TRANSFER_ALREADY_MADE')
-                    return res.render('transfer-request', {user: user, id: uuid.v4(), warning: 'You already submitted this'});
-
-                console.error('[INTERNAL_ERROR] could not make transfer: ', err);
-                return res.render('transfer-request', {user: user, id: uuid.v4(), warning: 'Could not make transfer'});
+                if (err === 'WRONG_PASSWORD')
+                    return res.render('transfer-request', {
+                        user: user,
+                        id: uuid.v4(),
+                        warning: 'wrong password, try it again...'
+                    });
+                if (err === 'INVALID_OTP')
+                    return res.render('transfer-request', {user: user, id: uuid.v4(), warning: 'invalid one-time token'});
+                //Should be an user
+                return next(new Error('Unable to validate user handling transfer: ' + err));
             }
+            // Check destination user
 
-            return res.redirect('/transfer?m=success');
+            database.makeTransfer(uid, user.id, toUserName, amount, function (err) {
+                if (err) {
+                    if (err === 'NOT_ENOUGH_BALANCE')
+                        return res.render('transfer-request', {user: user, id: uuid.v4(), warning: 'Not enough balance for transfer'});
+                    if (err === 'USER_NOT_EXIST')
+                        return res.render('transfer-request', {user: user, id: uuid.v4(), warning: 'Could not find user'});
+                    if (err === 'TRANSFER_ALREADY_MADE')
+                        return res.render('transfer-request', {user: user, id: uuid.v4(), warning: 'You already submitted this'});
+
+                    console.error('[INTERNAL_ERROR] could not make transfer: ', err);
+                    return res.render('transfer-request', {user: user, id: uuid.v4(), warning: 'Could not make transfer'});
+                }
+
+                return res.redirect('/transfer?m=success');
+            });
         });
-    });
 
+     });
  };
 
 /**
@@ -778,53 +801,59 @@ exports.handleWithdrawRequest = function(req, res, next) {
     amount = Math.round(parseFloat(amount) * 100);
     assert(Number.isFinite(amount));
 
-    var minWithdraw = config.MINING_FEE + 10000;
+    return lib.getSettings(function(err, settings) {
+        if (err) return res.render('withdraw-request', { user: user,  id: uuid.v4(), warning: 'The system encountered an internal error.'  });
 
-    if (amount < minWithdraw)
-        return res.render('withdraw-request', { user: user,  id: uuid.v4(), warning: 'You must withdraw ' + minWithdraw + ' or more'  });
+        var minWithdraw = (parseFloat(settings.minimum_withdrawal_amount) + parseFloat(settings.withdrawal_mining_fee)) * 100;
 
-    if (typeof destination !== 'string')
-        return res.render('withdraw-request', { user: user,  id: uuid.v4(), warning: 'Destination address not provided' });
+        if (amount < minWithdraw)
+            return res.render('withdraw-request', { user: user,  id: uuid.v4(), warning: 'You must withdraw ' + (minWithdraw / 100) + ' bits or more'  });
 
-    try {
-        var version = bitcoinjs.address.fromBase58Check(destination).version;
-        if (version !== bitcoinjs.networks.bitcoin.pubKeyHash && version !== bitcoinjs.networks.bitcoin.scriptHash)
-            return res.render('withdraw-request', { user: user,  id: uuid.v4(), warning: 'Destination address is not a bitcoin one' });
-    } catch(ex) {
-        return res.render('withdraw-request', { user: user,  id: uuid.v4(), warning: 'Not a valid destination address' });
-    }
+        if (typeof destination !== 'string')
+            return res.render('withdraw-request', { user: user,  id: uuid.v4(), warning: 'Destination address not provided' });
 
-    if (!password)
-        return res.render('withdraw-request', { user: user,  id: uuid.v4(), warning: 'Must enter a password' });
-
-    if(!lib.isUUIDv4(withdrawalId))
-      return res.render('withdraw-request', { user: user,  id: uuid.v4(), warning: 'Could not find a one-time token' });
-
-    database.validateUser(user.username, password, otp, function(err) {
-
-        if (err) {
-            if (err === 'WRONG_PASSWORD')
-                return res.render('withdraw-request', { user: user, id: uuid.v4(), warning: 'wrong password, try it again...' });
-            if (err === 'INVALID_OTP')
-                return res.render('withdraw-request', { user: user, id: uuid.v4(), warning: 'invalid one-time token' });
-            //Should be an user
-            return next(new Error('Unable to validate user handling withdrawal: \n' + err));
+        try {
+            var version = bitcoinjs.address.fromBase58Check(destination).version;
+            if (version !== bitcoinjs.networks.bitcoin.pubKeyHash && version !== bitcoinjs.networks.bitcoin.scriptHash)
+                return res.render('withdraw-request', { user: user,  id: uuid.v4(), warning: 'Destination address is not a bitcoin one' });
+        } catch(ex) {
+            return res.render('withdraw-request', { user: user,  id: uuid.v4(), warning: 'Not a valid destination address' });
         }
 
-        withdraw(req.user.id, amount, destination, withdrawalId, function(err) {
+        if (!password)
+            return res.render('withdraw-request', { user: user,  id: uuid.v4(), warning: 'Must enter a password' });
+
+        if(!lib.isUUIDv4(withdrawalId))
+        return res.render('withdraw-request', { user: user,  id: uuid.v4(), warning: 'Could not find a one-time token' });
+
+        database.validateUser(user.username, password, otp, function(err) {
+
             if (err) {
-                if (err === 'NOT_ENOUGH_MONEY')
-                    return res.render('withdraw-request', { user: user, id: uuid.v4(), warning: 'Not enough money to process withdraw.' });
-                else if (err === 'PENDING')
-                    return res.render('withdraw-request', { user: user,  id: uuid.v4(), success: 'Withdrawal successful, however hot wallet was empty. Withdrawal will be reviewed and sent ASAP' });
-                else if(err === 'SAME_WITHDRAWAL_ID')
-                    return res.render('withdraw-request', { user: user,  id: uuid.v4(), warning: 'Please reload your page, it looks like you tried to make the same transaction twice.' });
-                else if(err === 'FUNDING_QUEUED')
-                    return res.render('withdraw-request', { user: user,  id: uuid.v4(), success: 'Your transaction is being processed come back later to see the status.' });
-                else
-                    return next(new Error('Unable to withdraw: ' + err));
+                if (err === 'WRONG_PASSWORD')
+                    return res.render('withdraw-request', { user: user, id: uuid.v4(), warning: 'wrong password, try it again...' });
+                if (err === 'INVALID_OTP')
+                    return res.render('withdraw-request', { user: user, id: uuid.v4(), warning: 'invalid one-time token' });
+                //Should be an user
+                return next(new Error('Unable to validate user handling withdrawal: \n' + err));
             }
-            return res.render('withdraw-request', { user: user, id: uuid.v4(), success: 'OK' });
+
+            withdraw(req.user.id, amount, destination, withdrawalId, fp, settings, function(err) {
+                if (err) {
+                    if (err === 'NOT_ENOUGH_MONEY')
+                        return res.render('withdraw-request', { user: user, id: uuid.v4(), warning: 'Not enough money to process withdraw.' });
+                    else if (err === 'PENDING')
+                        return res.render('withdraw-request', { user: user,  id: uuid.v4(), success: 'Withdrawal successful, however hot wallet was empty. Withdrawal will be sent ASAP' });
+                    else if (err === 'OVER_LIMIT')
+                        return res.render('withdraw-request', { user: user,  id: uuid.v4(), success: 'Your withdrawal is too large to be processed automatically. An admin will approve and send your transaction ASAP!' });
+                    else if(err === 'SAME_WITHDRAWAL_ID')
+                        return res.render('withdraw-request', { user: user,  id: uuid.v4(), warning: 'Please reload your page, it looks like you tried to make the same transaction twice.' });
+                    else if(err === 'FUNDING_QUEUED')
+                        return res.render('withdraw-request', { user: user,  id: uuid.v4(), success: 'Your transaction is being processed come back later to see the status.' });
+                    else
+                        return next(new Error('Unable to withdraw: ' + err));
+                }
+                return res.render('withdraw-request', { user: user, id: uuid.v4(), success: 'OK' });
+            });
         });
     });
 };
@@ -836,7 +865,11 @@ exports.handleWithdrawRequest = function(req, res, next) {
  **/
 exports.withdrawRequest = function(req, res) {
     assert(req.user);
-    res.render('withdraw-request', { user: req.user, id: uuid.v4() });
+    
+    return lib.getSettings(function(err, settings) {
+        if (err) return next(new Error('The system encountered an internal error.'));
+        res.render('withdraw-request', { user: req.user, id: uuid.v4(), settings: settings });
+    });
 };
 
 /**

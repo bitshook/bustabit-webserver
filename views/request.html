@@ -36,12 +36,12 @@
         <div class="small-10 columns sets-content">
             <h5>Request Free Bits</h5>
                 {{?typeof it.user.eligible !== 'number'}}
-                    <p class="small ">**Every hour you are able to request 2 free bits, just claim them!</p>
+                    <p class="small ">**Every hour you are able to request {{=it.settings.faucet_payout_bits}} free bits, just claim them!</p>
                     <form class="giveaway-form" action="/request" method="post" id="faucetForm">
                         <div class="g-recaptcha" data-sitekey="{{=it.recaptchaKey}}" data-callback="sub"></div>
                     </form>
                 {{??}}
-                    <h4>You will be eligible for a free 2 bits in {{=it.user.eligible}} minutes</h4>
+                    <h4>You will be eligible for {{=it.settings.faucet_payout_bits}} free bits in {{=it.user.eligible}} minutes</h4>
                 {{?}}
         </div>
     </div>

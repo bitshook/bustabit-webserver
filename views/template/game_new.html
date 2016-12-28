@@ -25,14 +25,14 @@
 
             {{?? it.user.advice == 'received'}}
                 USER_MESSAGE.type = 'received';
-                USER_MESSAGE.qty = 2;
+                USER_MESSAGE.qty = {{=it.settings.faucet_payout_bits}};
             {{?? it.user.advice}}
                 USER_MESSAGE.type = 'advice';
                 USER_MESSAGE.text = "{{!it.user.advice}}";
             {{?? it.user && it.user.balance_satoshis < 100}}
                 {{? it.user.eligible == true}}
                     USER_MESSAGE.type = 'collect';
-                    USER_MESSAGE.qty = 2;
+                    USER_MESSAGE.qty = {{=it.settings.faucet_payout_bits}};
                 {{?}}
             {{?}}
 

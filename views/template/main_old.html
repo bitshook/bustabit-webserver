@@ -21,12 +21,12 @@
             </div>
         {{??it.user.advice == 'new'}}
         <div class="success">
-            Welcome to bustabit.com, to start you can <a href="/request">request 2 free bits</a> or you can just watch the current games... have fun :D
+            Welcome to bitshook.com, to start you can <a href="/request">request free bits</a> or you can just watch the current games... have fun :D
 
         </div>
         {{??it.user.advice == 'received'}}
         <div class="success">
-            Congratulations you have been credited 2 free bits. Have fun!
+            Congratulations you have been credited free bits. Have fun!
         </div>
         {{?? it.user.advice}}
         <div class="success">
@@ -34,7 +34,7 @@
         </div>
         {{??it.user && it.user.balance_satoshis < 100 }}
             {{?it.user.eligible == true}}
-                <div class="success"><a href="/request">Collect your two free bits!</a></div>
+                <div class="success"><a href="/request">Collect your free bits!</a></div>
             {{?}}
         {{?}}
 

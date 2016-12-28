@@ -501,14 +501,18 @@ exports.addGiveaway = function(userId, callback) {
                     return callback({ message: 'NOT_ELIGIBLE', time: eligible});
                 }
 
-                var amount = 200; // 2 bits
-                client.query('INSERT INTO giveaways(user_id, amount) VALUES($1, $2) ', [userId, amount], function(err) {
+                lib.getSettings(function(err, settings) {
                     if (err) return callback(err);
 
-                    addSatoshis(client, userId, amount, function(err) {
+                    var amount = settings.faucet_payout_bits * 100;
+                    client.query('INSERT INTO giveaways(user_id, amount) VALUES($1, $2) ', [userId, amount], function(err) {
                         if (err) return callback(err);
 
-                        callback(null);
+                        addSatoshis(client, userId, amount, function(err) {
+                            if (err) return callback(err);
+
+                            callback(null);
+                        });
                     });
                 });
             });
